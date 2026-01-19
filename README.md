@@ -17,9 +17,16 @@ Native-like touchpad gesture support for Final Fantasy XIV.
 
 ### Installation
 
-1.  This plugin is currently in development.
-2.  Clone this repository and build the project.
-3.  Add the built `XIVTouchPad.dll` to your Dalamud Dev Plugin Locations.
+1.  **Download:** Go to the [Actions](https://github.com/AzurIce/XIVTouchPad/actions) tab of this repository.
+2.  **Select Build:** Click on the latest successful "XIVTouchPad Build" workflow run.
+3.  **Artifacts:** Scroll down to the "Artifacts" section and download the `XIVTouchPad` zip file.
+4.  **Extract:**
+    *   First, extract the downloaded artifact zip. You will see a `latest.zip` and a `XIVTouchPad.json`.
+    *   **Crucially**, extract the `latest.zip` to a folder. This folder will contain the actual `XIVTouchPad.dll`.
+5.  **Dalamud Setup:**
+    *   Go to Dalamud Settings -> **Experimental**.
+    *   Under **Dev Plugin Locations**, add the full path to the `XIVTouchPad.dll` you just extracted.
+    *   Click `+` and Save.
 
 ### Usage
 

@@ -5,6 +5,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Lumina.Excel.Sheets;
+using SamplePlugin.Interop;
 
 namespace SamplePlugin.Windows;
 
@@ -13,15 +14,12 @@ public class MainWindow : Window, IDisposable
     private readonly string goatImagePath;
     private readonly Plugin plugin;
 
-    // We give this window a hidden ID using ##.
-    // The user will see "My Amazing Window" as window title,
-    // but for ImGui the ID is "My Amazing Window##With a hidden ID"
     public MainWindow(Plugin plugin, string goatImagePath)
         : base("My Amazing Window##With a hidden ID", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(375, 330),
+            MinimumSize = new Vector2(375, 450),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
 
@@ -33,7 +31,7 @@ public class MainWindow : Window, IDisposable
 
     public override void Draw()
     {
-        // Read the global state from the Plugin instance
+        // ... (previous debug info code)
         var mousePos = plugin.CurrentMousePos;
         var mouseDelta = plugin.CurrentMouseDelta;
         var wheelV = plugin.CurrentMouseWheel;
@@ -72,6 +70,60 @@ public class MainWindow : Window, IDisposable
         ImGui.Text($"Right Click: {(plugin.IsRightMouseDown ? "DOWN" : "UP")}");
 
         ImGui.Separator();
+        ImGui.Text("Camera Control (SDK + Custom Struct):");
+        
+        unsafe 
+        {
+            // Use the SDK's ClientStructs to find the instance pointer
+            var csInstance = FFXIVClientStructs.FFXIV.Client.Game.Control.CameraManager.Instance();
+            
+            if (csInstance != null)
+            {
+                // Cast to OUR struct which has 'WorldCamera' and correct offsets
+                var manager = (SamplePlugin.Interop.CameraManager*)csInstance;
+                var camera = manager->WorldCamera;
+                
+                if (camera != null)
+                {
+                    ImGui.Text($"Cam Ptr: {(IntPtr)camera:X}");
+                    
+                    ImGui.Text($"Yaw (H):   {camera->CurrentHRotation:F3}");
+                    ImGui.Text($"Pitch (V): {camera->CurrentVRotation:F3}");
+                    
+                    ImGui.Separator();
+                    
+                    if (ImGui.Button("Left (-0.1)"))
+                    {
+                        camera->CurrentHRotation -= 0.1f;
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button("Right (+0.1)"))
+                    {
+                        camera->CurrentHRotation += 0.1f;
+                    }
+                    
+                    if (ImGui.Button("Up (+0.1)"))
+                    {
+                        camera->CurrentVRotation += 0.1f;
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button("Down (-0.1)"))
+                    {
+                        camera->CurrentVRotation -= 0.1f;
+                    }
+                }
+                else
+                {
+                    ImGui.TextColored(new Vector4(1,0,0,1), "WorldCamera is NULL");
+                }
+            }
+            else
+            {
+                ImGui.TextColored(new Vector4(1,0,0,1), "CameraManager Instance is NULL");
+            }
+        }
+
+        ImGui.Separator();
         ImGui.TextWrapped("Note: Raw multi-touch finger count is not exposed by ImGui/Game natively. It requires OS-level window hooks (WM_TOUCH).");
 
         ImGui.Spacing();
@@ -81,6 +133,7 @@ public class MainWindow : Window, IDisposable
         {
             plugin.ToggleConfigUi();
         }
+
 
         ImGui.Spacing();
 

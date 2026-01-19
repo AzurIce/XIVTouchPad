@@ -1,0 +1,14 @@
+{
+  "Author": "AzurIce",
+  "Name": "XIVTouchPad",
+      "InternalName": "XIVTouchPad",  "Punchline": "Native-like touchpad gesture support for camera control.",
+  "Description": "XIVTouchPad unlocks smooth, native-feeling touchpad gestures for Final Fantasy XIV. It utilizes raw input hooks to enable two-finger scrolling for camera rotation (Yaw/Pitch), offering a much smoother experience than standard mouse emulation. Includes configurable sensitivity and axis inversion settings.",
+  "ApplicableVersion": "any",
+  "Tags": [
+    "touchpad",
+    "gestures",
+    "camera",
+    "input",
+    "scroll"
+  ]
+}

@@ -1,8 +1,10 @@
-name: Sample PR Builder for SamplePlugin
+name: XIVTouchPad Build
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
 
@@ -10,16 +12,16 @@ jobs:
     runs-on: windows-2022
 
     env:
-      Solution_Name: SamplePlugin
+      Solution_Name: XIVTouchPad
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v4
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.0.x
+        dotnet-version: 8.0.x
 
     - name: Download Dalamud
       run: |
@@ -32,8 +34,7 @@ jobs:
     - name: Store artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: SamplePlugin
-        path: .\SamplePlugin\bin\x64\Release\SamplePlugin\*
+        name: XIVTouchPad
+        path: .\XIVTouchPad\bin\x64\Release\XIVTouchPad\*
         if-no-files-found: error
         retention-days: 1
-

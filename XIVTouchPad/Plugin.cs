@@ -1,33 +1,26 @@
 using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
-using System.IO;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
-using SamplePlugin.Windows;
-using SamplePlugin.Input;
-using SamplePlugin.Interop;
+using XIVTouchPad.Windows;
+using XIVTouchPad.Input;
+using XIVTouchPad.Interop;
 using Dalamud.Bindings.ImGui;
 
-namespace SamplePlugin;
+namespace XIVTouchPad;
 
 public sealed class Plugin : IDalamudPlugin
 {
     [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
-    [PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
     [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
-    [PluginService] internal static IClientState ClientState { get; private set; } = null!;
-    [PluginService] internal static IPlayerState PlayerState { get; private set; } = null!;
-    [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
-    [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
-    [PluginService] internal static ISigScanner SigScanner { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
 
-    private const string CommandName = "/pmycommand";
+    private const string CommandName = "/touchpad";
 
     public Configuration Configuration { get; init; }
 
-    public readonly WindowSystem WindowSystem = new("SamplePlugin");
+    public readonly WindowSystem WindowSystem = new("XIVTouchPad");
     private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }
     private MouseHook? MouseHook { get; init; }
@@ -46,18 +39,15 @@ public sealed class Plugin : IDalamudPlugin
     public bool IsRightMouseDown { get; private set; }
 
     // Accumulators for raw input
-    private float _accumulatedWheelV = 0;
-    private float _accumulatedWheelH = 0;
+    private float accumulatedWheelV = 0;
+    private float accumulatedWheelH = 0;
 
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
-        // You might normally want to embed resources and load them from the manifest stream
-        var goatImagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png");
-
         ConfigWindow = new ConfigWindow(this);
-        MainWindow = new MainWindow(this, goatImagePath);
+        MainWindow = new MainWindow(this);
         
         // Initialize the native mouse hook
         try 
@@ -103,9 +93,9 @@ public sealed class Plugin : IDalamudPlugin
         // Standardize the delta (usually 120 per notch). 
         float val = delta / 120.0f;
         if (isHorizontal)
-            _accumulatedWheelH += val;
+            accumulatedWheelH += val;
         else
-            _accumulatedWheelV += val;
+            accumulatedWheelV += val;
     }
 
     private void OnGlobalDraw()
@@ -116,18 +106,18 @@ public sealed class Plugin : IDalamudPlugin
         bool imguiWantsMouse = io.WantCaptureMouse;
 
         // Apply Camera Logic if we have raw input AND ImGui doesn't want the mouse
-        if ((_accumulatedWheelH != 0 || _accumulatedWheelV != 0) && !imguiWantsMouse)
+        if ((accumulatedWheelH != 0 || accumulatedWheelV != 0) && !imguiWantsMouse)
         {
-            ApplyCameraRotation(_accumulatedWheelH, _accumulatedWheelV);
+            ApplyCameraRotation(accumulatedWheelH, accumulatedWheelV);
         }
 
         // Transfer accumulated values to public properties for this frame
-        RawMouseWheel = _accumulatedWheelV;
-        RawMouseWheelH = _accumulatedWheelH;
+        RawMouseWheel = accumulatedWheelV;
+        RawMouseWheelH = accumulatedWheelH;
         
         // Reset accumulators
-        _accumulatedWheelV = 0;
-        _accumulatedWheelH = 0;
+        accumulatedWheelV = 0;
+        accumulatedWheelH = 0;
 
         // This runs every frame when the game UI is drawn, even if our windows are closed.
         // It is safe to call ImGui functions here.

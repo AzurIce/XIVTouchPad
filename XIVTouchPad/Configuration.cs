@@ -1,7 +1,7 @@
 ﻿using Dalamud.Configuration;
 using System;
 
-namespace SamplePlugin;
+namespace XIVTouchPad;
 
 [Serializable]
 public class Configuration : IPluginConfiguration
@@ -9,7 +9,6 @@ public class Configuration : IPluginConfiguration
     public int Version { get; set; } = 0;
 
     public bool IsConfigWindowMovable { get; set; } = true;
-    public bool SomePropertyToBeSavedAndWithADefault { get; set; } = true;
 
     // Camera Control Settings
     public float SpeedYaw { get; set; } = 0.05f;

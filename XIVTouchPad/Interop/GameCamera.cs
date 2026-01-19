@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 
-namespace SamplePlugin.Interop;
+namespace XIVTouchPad.Interop;
 
 /// <summary>
 /// Wrapper for FFXIVClientStructs CameraManager to access WorldCamera easily.

@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace SamplePlugin.Input;
+namespace XIVTouchPad.Input;
 
 public class MouseHook : IDisposable
 {
@@ -11,23 +11,23 @@ public class MouseHook : IDisposable
     private const int WM_MOUSEHWHEEL = 0x020E;
 
     // Delegate to keep alive
-    private readonly WndProcDelegate _wndProcDelegate;
-    private IntPtr _originalWndProc = IntPtr.Zero;
-    private IntPtr _hWnd = IntPtr.Zero;
+    private readonly WndProcDelegate wndProcDelegate;
+    private IntPtr originalWndProc = IntPtr.Zero;
+    private IntPtr hWnd = IntPtr.Zero;
 
     // Event invoked when wheel is scrolled
     public event Action<int, bool>? OnMouseWheel; // delta, isHorizontal
 
     public MouseHook()
     {
-        _hWnd = Process.GetCurrentProcess().MainWindowHandle;
-        if (_hWnd == IntPtr.Zero)
+        hWnd = Process.GetCurrentProcess().MainWindowHandle;
+        if (hWnd == IntPtr.Zero)
         {
             throw new Exception("Could not find Main Window Handle");
         }
 
-        _wndProcDelegate = new WndProcDelegate(WndProc);
-        _originalWndProc = SetWindowLongPtr(_hWnd, GWLP_WNDPROC, Marshal.GetFunctionPointerForDelegate(_wndProcDelegate));
+        wndProcDelegate = new WndProcDelegate(WndProc);
+        originalWndProc = SetWindowLongPtr(hWnd, GWLP_WNDPROC, Marshal.GetFunctionPointerForDelegate(wndProcDelegate));
     }
 
     private IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
@@ -51,16 +51,16 @@ public class MouseHook : IDisposable
             }
         }
 
-        return CallWindowProc(_originalWndProc, hWnd, msg, wParam, lParam);
+        return CallWindowProc(originalWndProc, hWnd, msg, wParam, lParam);
     }
 
     public void Dispose()
     {
-        if (_originalWndProc != IntPtr.Zero && _hWnd != IntPtr.Zero)
+        if (originalWndProc != IntPtr.Zero && hWnd != IntPtr.Zero)
         {
             // Restore the original WndProc
-            SetWindowLongPtr(_hWnd, GWLP_WNDPROC, _originalWndProc);
-            _originalWndProc = IntPtr.Zero;
+            SetWindowLongPtr(hWnd, GWLP_WNDPROC, originalWndProc);
+            originalWndProc = IntPtr.Zero;
         }
     }
 

@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.Command;
+using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using System.IO;
@@ -6,6 +6,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using SamplePlugin.Windows;
 using SamplePlugin.Input;
+using SamplePlugin.Interop;
 using Dalamud.Bindings.ImGui;
 
 namespace SamplePlugin;
@@ -43,6 +44,10 @@ public sealed class Plugin : IDalamudPlugin
     
     public bool IsLeftMouseDown { get; private set; }
     public bool IsRightMouseDown { get; private set; }
+
+    // Accumulators for raw input
+    private float _accumulatedWheelV = 0;
+    private float _accumulatedWheelH = 0;
 
     public Plugin()
     {
@@ -93,9 +98,6 @@ public sealed class Plugin : IDalamudPlugin
         Log.Information($"===A cool log message from {PluginInterface.Manifest.Name}===");
     }
     
-    private float _accumulatedWheelV = 0;
-    private float _accumulatedWheelH = 0;
-
     private void OnRawMouseWheel(int delta, bool isHorizontal)
     {
         // Standardize the delta (usually 120 per notch). 
@@ -108,6 +110,17 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnGlobalDraw()
     {
+        // Check if ImGui wants the mouse (e.g. hovering over a window)
+        // If so, we should NOT rotate the camera, but allow normal ImGui scrolling.
+        var io = ImGui.GetIO();
+        bool imguiWantsMouse = io.WantCaptureMouse;
+
+        // Apply Camera Logic if we have raw input AND ImGui doesn't want the mouse
+        if ((_accumulatedWheelH != 0 || _accumulatedWheelV != 0) && !imguiWantsMouse)
+        {
+            ApplyCameraRotation(_accumulatedWheelH, _accumulatedWheelV);
+        }
+
         // Transfer accumulated values to public properties for this frame
         RawMouseWheel = _accumulatedWheelV;
         RawMouseWheelH = _accumulatedWheelH;
@@ -118,13 +131,45 @@ public sealed class Plugin : IDalamudPlugin
 
         // This runs every frame when the game UI is drawn, even if our windows are closed.
         // It is safe to call ImGui functions here.
-        var io = ImGui.GetIO();
         CurrentMousePos = ImGui.GetMousePos();
         CurrentMouseDelta = io.MouseDelta;
         CurrentMouseWheel = io.MouseWheel;
         CurrentMouseWheelH = io.MouseWheelH;
         IsLeftMouseDown = ImGui.IsMouseDown(ImGuiMouseButton.Left);
         IsRightMouseDown = ImGui.IsMouseDown(ImGuiMouseButton.Right);
+    }
+
+    private unsafe void ApplyCameraRotation(float deltaH, float deltaV)
+    {
+        try
+        {
+            var csInstance = FFXIVClientStructs.FFXIV.Client.Game.Control.CameraManager.Instance();
+            if (csInstance == null) return;
+
+            var manager = (CameraManager*)csInstance;
+            var camera = manager->WorldCamera;
+            if (camera == null) return;
+
+            // Calculate deltas
+            // Horizontal (Yaw)
+            float yawDelta = deltaH * Configuration.SpeedYaw;
+            if (Configuration.InvertYaw) yawDelta = -yawDelta;
+
+            // Vertical (Pitch)
+            float pitchDelta = deltaV * Configuration.SpeedPitch;
+            if (Configuration.InvertPitch) pitchDelta = -pitchDelta;
+
+            // Apply
+            camera->CurrentHRotation += yawDelta;
+            camera->CurrentVRotation += pitchDelta;
+
+            // Optional: Clamp Pitch to avoid flipping over (though game might handle it)
+            // Typical limits are approx -1.4 to +1.4 or similar, but let's trust the user or game for now.
+        }
+        catch (System.Exception)
+        {
+            // Ignore errors to prevent crash
+        }
     }
 
     public void Dispose()

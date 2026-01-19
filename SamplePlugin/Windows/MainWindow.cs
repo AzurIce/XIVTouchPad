@@ -127,6 +127,39 @@ public class MainWindow : Window, IDisposable
         ImGui.TextWrapped("Note: Raw multi-touch finger count is not exposed by ImGui/Game natively. It requires OS-level window hooks (WM_TOUCH).");
 
         ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Text("Touchpad Camera Settings");
+
+        var speedYaw = plugin.Configuration.SpeedYaw;
+        if (ImGui.SliderFloat("Yaw Sensitivity (X)", ref speedYaw, 0.01f, 1.0f))
+        {
+            plugin.Configuration.SpeedYaw = speedYaw;
+            plugin.Configuration.Save();
+        }
+
+        var speedPitch = plugin.Configuration.SpeedPitch;
+        if (ImGui.SliderFloat("Pitch Sensitivity (Y)", ref speedPitch, 0.01f, 1.0f))
+        {
+            plugin.Configuration.SpeedPitch = speedPitch;
+            plugin.Configuration.Save();
+        }
+
+        var invertYaw = plugin.Configuration.InvertYaw;
+        if (ImGui.Checkbox("Invert Yaw (X)", ref invertYaw))
+        {
+            plugin.Configuration.InvertYaw = invertYaw;
+            plugin.Configuration.Save();
+        }
+        
+        ImGui.SameLine();
+        var invertPitch = plugin.Configuration.InvertPitch;
+        if (ImGui.Checkbox("Invert Pitch (Y)", ref invertPitch))
+        {
+            plugin.Configuration.InvertPitch = invertPitch;
+            plugin.Configuration.Save();
+        }
+
+        ImGui.Spacing();
         ImGui.Text($"The random config bool is {plugin.Configuration.SomePropertyToBeSavedAndWithADefault}");
 
         if (ImGui.Button("Show Settings"))

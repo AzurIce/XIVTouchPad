@@ -1,5 +1,16 @@
 # XIVTouchPad
 
+> [!IMPORTANT]
+> This repository is no longer maintained and has been archived. The plugin is
+> now named **TouchPad**, and all development, releases, and issue tracking have
+> moved to [AzurIce/DalamudPlugins](https://github.com/AzurIce/DalamudPlugins):
+> [source](https://github.com/AzurIce/DalamudPlugins/tree/main/plugins/TouchPad) ·
+> [releases](https://github.com/AzurIce/DalamudPlugins/releases) ·
+> [issues](https://github.com/AzurIce/DalamudPlugins/issues).
+>
+> Dalamud third-party repository URL:
+> `https://azurice.github.io/DalamudPlugins/repo.json`
+
 Native-like touchpad gesture support for Final Fantasy XIV.
 
 **XIVTouchPad** improves the game experience on laptops by hooking into raw input data to provide smooth, high-precision camera control using touchpad gestures.
